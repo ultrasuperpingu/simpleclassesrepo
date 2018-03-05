@@ -1,3 +1,15 @@
+/*
+ *  TcpClient
+ *  Copyright (c) 2018 Julien Soler
+ *                All Rights Reserved
+ *
+ *  This program is free software. It comes without any warranty, to
+ *  the extent permitted by applicable law. You can redistribute it
+ *  and/or modify it under the terms of the Do What the Fuck You Want
+ *  to Public License, Version 2, as published by Sam Hocevar. See
+ *  http://www.wtfpl.net/ for more details.
+ */
+
 #ifdef _WIN32
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #else
@@ -23,27 +35,16 @@ TcpClient::TcpClient(std::string address, int port) : address(address), port(por
 	WSADATA wsaData;
 	int err;
 
-	/* Use the MAKEWORD(lowbyte, highbyte) macro declared in Windef.h */
 	wVersionRequested = MAKEWORD(2, 2);
 
 	err = WSAStartup(wVersionRequested, &wsaData);
 	if (err != 0) {
-		/* Tell the user that we could not find a usable */
-		/* Winsock DLL.                                  */
-		cerr << "WSAStartup failed with error: "<< err << endl;
+		cerr << "WSAStartup failed: " << err << endl;
 		return;
 	}
 
-	/* Confirm that the WinSock DLL supports 2.2.*/
-	/* Note that if the DLL supports versions greater    */
-	/* than 2.2 in addition to 2.2, it will still return */
-	/* 2.2 in wVersion since that is the version we      */
-	/* requested.                                        */
-
 	if (LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2) {
-		/* Tell the user that we could not find a usable */
-		/* WinSock DLL.                                  */
-		cerr << "Could not find a usable version of Winsock.dll" << endl;
+		cerr << "Could not find Winsock.dll version 2.2" << endl;
 		WSACleanup();
 		return;
 	}
@@ -58,15 +59,11 @@ TcpClient::~TcpClient()
 		WSACleanup();
 #endif
 }
-/**
-Connect to a host on a certain port number
-*/
+
 bool TcpClient::connect()
 {
-	//create socket if it is not already created
 	if (sock == INVALID_SOCKET)
 	{
-		//Create socket
 		sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 		if (sock == INVALID_SOCKET)
 		{
@@ -74,37 +71,25 @@ bool TcpClient::connect()
 		}
 	}
 	
-
-	//setup address structure
 	if (inet_addr(address.c_str()) == -1)
 	{
 		struct hostent *he;
 		struct in_addr **addr_list;
 
-		//resolve the hostname, its not an ip address
 		if ((he = gethostbyname(address.c_str())) == NULL)
 		{
-			//gethostbyname failed
 			cerr << "gethostbyname: Failed to resolve hostname" << endl;
-
 			return false;
 		}
 
-		//Cast the h_addr_list to in_addr , since h_addr_list also has the ip address in long format only
 		addr_list = (struct in_addr **) he->h_addr_list;
 
 		for (int i = 0; addr_list[i] != NULL; i++)
 		{
-			//strcpy(ip , inet_ntoa(*addr_list[i]) );
 			server.sin_addr = *addr_list[i];
-
-			cout << address << " resolved to " << inet_ntoa(*addr_list[i]) << endl;
-
 			break;
 		}
 	}
-
-	//plain ip address
 	else
 	{
 		server.sin_addr.s_addr = inet_addr(address.c_str());
@@ -113,14 +98,11 @@ bool TcpClient::connect()
 	server.sin_family = AF_INET;
 	server.sin_port = htons(port);
 
-	//Connect to remote server
 	if (::connect(sock, (struct sockaddr *)&server, sizeof(server)) < 0)
 	{
 		cerr << "connect failed. Error" << endl;
 		return false;
 	}
-
-	cout << "Connected\n";
 	return true;
 }
 
@@ -169,7 +151,6 @@ int main(int argc, char *argv[])
 		string data = "GET / HTTP/1.1\r\nHost:" + host + "\r\n\r\n";
 		c.send((const uint8_t*)data.c_str(), data.length());
 
-		cout << "----------------------------" << endl;
 		std::string resp;
 		uint8_t received[2048];
 		int size = c.receive(received, 2048);
@@ -183,7 +164,6 @@ int main(int argc, char *argv[])
 		received[size] = 0;
 		resp = (char*)received;
 		cout << resp << endl;
-		cout << "----------------------------" << endl;
 	}
 	return 0;
 }

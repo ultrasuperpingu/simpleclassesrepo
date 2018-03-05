@@ -1,3 +1,15 @@
+/*
+ *  HttpRequest
+ *  Copyright (c) 2018 Julien Soler
+ *                All Rights Reserved
+ *
+ *  This program is free software. It comes without any warranty, to
+ *  the extent permitted by applicable law. You can redistribute it
+ *  and/or modify it under the terms of the Do What the Fuck You Want
+ *  to Public License, Version 2, as published by Sam Hocevar. See
+ *  http://www.wtfpl.net/ for more details.
+ */
+
 #include "HttpRequest.h"
 #include "TcpClient.h"
 #include <regex>
@@ -90,7 +102,7 @@ HttpResponse::HttpResponse(const string& response)
 	body = response;
 }
 
-//#ifdef TEST_HTTP_REQUEST
+#ifdef TEST_HTTP_REQUEST
 #include <iostream>
 int main()
 {
@@ -106,4 +118,4 @@ int main()
 		cerr << resp.getBody() << endl;
 	}
 }
-//#endif
+#endif
