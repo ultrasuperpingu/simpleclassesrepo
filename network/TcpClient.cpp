@@ -15,6 +15,7 @@
 #else
 #include <netdb.h>
 #include <unistd.h>
+#include <sys/socket.h>
 #endif
 #include "TcpClient.h"
 #include <iostream>
@@ -71,7 +72,7 @@ bool TcpClient::connect()
 		}
 	}
 	
-	if (inet_addr(address.c_str()) == -1)
+	if (inet_addr(address.c_str()) == INADDR_NONE)
 	{
 		struct hostent *he;
 		struct in_addr **addr_list;
@@ -114,9 +115,31 @@ bool TcpClient::send(const uint8_t* data, uint32_t size)
 	}
 	return true;
 }
+void TcpClient::setReceiveTimeout(int seconds)
+{
+#ifdef _WIN32
+	DWORD timeout = seconds * 1000;
+	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout));
+#else
+	struct timeval tv;
+	tv.tv_sec = seconds;
+	tv.tv_usec = 0;
+	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv));
+#endif
+}
 int TcpClient::receive(uint8_t* data, uint32_t maxsize)
 {
 	return recv(sock, (char*)data, sizeof(uint8_t)*maxsize, 0);
+}
+
+int TcpClient::receiveWait(uint8_t* data, uint32_t maxsize)
+{
+	return recv(sock, (char*)data, sizeof(uint8_t)*maxsize, MSG_WAITALL);
+}
+
+int TcpClient::peek(uint8_t* data, uint32_t maxsize)
+{
+	return recv(sock, (char*)data, sizeof(uint8_t)*maxsize, MSG_PEEK);
 }
 
 void TcpClient::close()
@@ -131,7 +154,7 @@ void TcpClient::close()
 }
 
 #ifdef TEST_TCP_CLIENT
-int main(int argc, char *argv[])
+int main()
 {
 	
 	string host;
@@ -149,7 +172,7 @@ int main(int argc, char *argv[])
 			return -1;
 		}
 		string data = "GET / HTTP/1.1\r\nHost:" + host + "\r\n\r\n";
-		c.send((const uint8_t*)data.c_str(), data.length());
+		c.send((const uint8_t*)data.c_str(), (uint32_t)data.length());
 
 		std::string resp;
 		uint8_t received[2048];

@@ -35,7 +35,7 @@ const char* methods[] = {
 	"PATCH"
 };
 
-HttpRequest::HttpRequest(const string& address) : method(HTTP_GET)
+HttpRequest::HttpRequest(const string& address) : method(HTTP_GET), timeout(-1)
 {
 	std::regex r("http://([a-zA-Z0-9\\.]+)(:[0-9]+)?(/.*)?");
 	std::cmatch m;
@@ -77,19 +77,26 @@ HttpResponse HttpRequest::send()
 		return HttpResponse();
 	}
 	tcp.send((const uint8_t*)data.c_str(), data.length());
+	if(timeout > 0) {
+		tcp.setReceiveTimeout(timeout);
+	}
 	std::vector<uint8_t> buff(RBUFF_SIZE,0);
 	int sizeReceived = 0;
 	int totalSize = 0;
 	while(true)
 	{
-		sizeReceived = tcp.receive(&buff[totalSize], RBUFF_SIZE);
+		sizeReceived = tcp.receiveWait(&buff[totalSize], RBUFF_SIZE);
 		if (sizeReceived < 0)
 			break;
 		totalSize += sizeReceived;
 		if (sizeReceived == RBUFF_SIZE)
+		{
 			buff.resize(totalSize + RBUFF_SIZE);
+		}
 		else
+		{
 			break;
+		}
 	}
 	buff.resize(totalSize + 1);
 	buff[totalSize] = 0;
@@ -99,7 +106,26 @@ HttpResponse HttpRequest::send()
 
 HttpResponse::HttpResponse(const string& response)
 {
-	body = response;
+	cerr << response;
+	std::stringstream ss(response);
+	string line;
+	std::getline(ss, line);
+	while (line != "\r")
+	{
+		std::getline(ss, line);
+		int index=line.find(": ");
+		if (index >= 0)
+		{
+			headers[line.substr(0, index)] = line.substr(index + 2);
+			//cerr << line << endl;
+		}
+	}
+	while (!ss.eof())
+	{
+		std::getline(ss, line);
+		//if(!ss.eof())
+			body += line + "\n";
+	}
 }
 
 #ifdef TEST_HTTP_REQUEST
@@ -114,6 +140,7 @@ int main()
 		if (address.length() == 0)
 			break;
 		HttpRequest req(address);
+		req.setTimeout(1);
 		HttpResponse resp = req.send();
 		cerr << resp.getBody() << endl;
 	}

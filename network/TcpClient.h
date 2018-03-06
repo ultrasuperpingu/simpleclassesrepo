@@ -30,14 +30,17 @@ public:
 	virtual ~TcpClient();
 	bool connect();
 	
+	void setReceiveTimeout(int seconds);
 	bool send(const uint8_t* data, uint32_t size);
 	int receive(uint8_t* data, uint32_t size);
+	int receiveWait(uint8_t* data, uint32_t size);
+	int peek(uint8_t* data, uint32_t size);
 	void close();
 	bool isOpen() const;
 protected:
-	SOCKET sock;
 	std::string address;
 	int port;
+	SOCKET sock;
 	struct sockaddr_in server;
 #ifdef _WIN32
 	bool inited;
