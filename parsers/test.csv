@@ -1,0 +1,10 @@
+Hello;World
+"This
+is
+a
+multiline
+cell"
+"Two;";"cells with separator in it!;;;"
+"Hello;""World
+multiline with quote and separator in it!"";!"
+test""with quotes;in unquoted fields"
