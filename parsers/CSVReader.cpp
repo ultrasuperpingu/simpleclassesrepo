@@ -143,6 +143,17 @@ bool CSVReader::readNext(std::vector<std::string>& record) {
 	return true;
 }
 
+std::vector<std::vector<std::string> > CSVReader::readAll()
+{
+	std::vector<std::vector<std::string> >	res;
+	std::vector<std::string> record;
+	while(readNext(record))
+	{
+		res.push_back(record);
+	}
+	return res;
+}
+
 using std::cout;
 int main()
 {
@@ -156,6 +167,15 @@ int main()
 			cout << "record[" << nr << "," << i << "]: " << record[i] << endl;
 		}
 		nr++;
+	}
+	CSVReader reader2("./test.csv", ';');
+	auto data=reader2.readAll();
+	for(int i=0;i<data.size();i++)
+	{
+		for(int j=0;j<data[i].size();j++)
+		{
+			cout << "record[" << i << "," << j << "]: " << data[i][j] << endl;
+		}
 	}
 	return 0;
 }

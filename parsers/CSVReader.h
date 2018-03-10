@@ -17,7 +17,6 @@ class CSVReader {
 private:
 	char separator;
 	char quoteChar;
-	
 	std::ifstream* in;	
 
 public:
@@ -34,6 +33,7 @@ public:
 	virtual ~CSVReader();
 	
 	bool readNext(std::vector<std::string>& lineOut);
+	std::vector<std::vector<std::string> > readAll();
 };
 inline char CSVReader::getSeparator() const { return separator; }
 inline void CSVReader::setSeparator(char separator) { this->separator = separator; }
