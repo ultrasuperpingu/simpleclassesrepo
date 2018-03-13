@@ -154,6 +154,9 @@ std::vector<std::vector<std::string> > CSVReader::readAll()
 	return res;
 }
 
+bool CSVReader::eof() const { return in->eof(); }
+
+#if TEST_CSV_READER
 using std::cout;
 int main()
 {
@@ -177,5 +180,11 @@ int main()
 			cout << "record[" << i << "," << j << "]: " << data[i][j] << endl;
 		}
 	}
+	CSVReader reader3("./test_data.csv");
+	while(!reader3.eof()) {
+		auto line=reader3.readNext<float,float,float,float,string>();
+		cout << std::get<4>(line) << endl;
+	}
 	return 0;
 }
+#endif
