@@ -106,25 +106,30 @@ HttpResponse HttpRequest::send()
 
 HttpResponse::HttpResponse(const string& response)
 {
-	cerr << response;
 	std::stringstream ss(response);
 	string line;
 	std::getline(ss, line);
+	if (line != "HTTP/1.1 200 OK\r")
+	{
+		//TODO: read it
+		statusCode = 400;
+		return;
+	}
+	statusCode = 200;
+	statusText = "OK";
 	while (line != "\r")
 	{
 		std::getline(ss, line);
-		int index=line.find(": ");
+		int index=line.find(":");
 		if (index >= 0)
 		{
-			headers[line.substr(0, index)] = line.substr(index + 2);
-			//cerr << line << endl;
+			headers[line.substr(0, index)] = line.substr(index + 1);
 		}
 	}
 	while (!ss.eof())
 	{
 		std::getline(ss, line);
-		//if(!ss.eof())
-			body += line + "\n";
+		body += line + "\n";
 	}
 }
 
