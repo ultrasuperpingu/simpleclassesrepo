@@ -48,12 +48,20 @@ inline char CSVReader::getSeparator() const { return separator; }
 inline void CSVReader::setSeparator(char separator) { this->separator = separator; }
 inline char CSVReader::getQuoteChar() const { return quoteChar; }
 inline void CSVReader::setQuoteChar(char quoteChar) { this->quoteChar = quoteChar; }
+
+template<>
+std::string CSVReader::readField(std::vector<std::string>& vals)
+{
+	std::string t=vals[vals.size()-1];
+	vals.erase(vals.end()-1);
+	return t;
+}
 template<class T>
 T CSVReader::readField(std::vector<std::string>& vals)
 {
 	T t;
 	std::istringstream(vals[vals.size()-1]) >> t;
-	vals.erase(vals.begin());
+	vals.erase(vals.end()-1);
 	return t;
 }
 template<class ... T>

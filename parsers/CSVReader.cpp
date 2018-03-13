@@ -183,7 +183,7 @@ int main()
 	CSVReader reader3("./test_data.csv");
 	while(!reader3.eof()) {
 		auto line=reader3.readNext<float,float,float,float,string>();
-		cout << std::get<4>(line) << endl;
+		cout << std::get<0>(line) <<" " << std::get<1>(line) <<" "<<std::get<2>(line)<< " "<< std::get<3>(line)<<" " <<std::get<4>(line) << endl;
 	}
 	return 0;
 }
